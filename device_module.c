@@ -10,11 +10,14 @@
 #include <linux/fs.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
-#define MY_MAJOR        40
 
 struct class    *device_class;
 struct device   *device_interface_device;
 unsigned char *temp;
+dev_t devt; //MKDEV(major,minor)
+#define device_max_num (1024)
+
+// ************************************************* //
 static ssize_t device_name_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
         return snprintf(buf, PAGE_SIZE,"%s : %s\n",dev->init_name,(unsigned char *)dev->driver_data);
@@ -41,6 +44,10 @@ static int sysfs_resume(struct device *dev)
 static int __init interface_init(void)
 {
 	int ret;
+	devt = 0;
+	ret = alloc_chrdev_region(&devt,0,device_max_num,KBUILD_MODNAME);
+	if(ret<0)
+		goto init_failed;
         device_class = class_create(THIS_MODULE, "device_interface");
         if (IS_ERR(device_class)) {
                 printk(KERN_ERR "%s: couldn't create class\n", __FILE__);
@@ -51,17 +58,20 @@ static int __init interface_init(void)
         device_class->dev_groups = device_sysfs_groups;
 	temp = kmalloc(sizeof(unsigned char)*32,GFP_KERNEL);
 	ret = snprintf(temp,32,"device interface");
-        device_interface_device = device_create(device_class, NULL, MKDEV(200, 0), temp, "device_ept0");
+        device_interface_device = device_create(device_class, NULL, devt, temp, "device_0");
 	if(!device_interface_device)
 		goto register_failed;
+
+init_failed:
 	return ret;
+
 register_failed:
 	class_destroy(device_class);
         return 0;
 }
 static void __exit interface_exit(void)
 {
-        device_destroy(device_class, MKDEV(200, 0));
+        device_destroy(device_class, devt);
         class_destroy(device_class);
 	kfree(temp);
 }
