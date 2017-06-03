@@ -20,7 +20,7 @@ dev_t devt; //MKDEV(major,minor)
 // ************************************************* //
 static ssize_t device_name_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-        return snprintf(buf, PAGE_SIZE,"%s : %s\n",dev->init_name,(unsigned char *)dev->driver_data);
+        return snprintf(buf, PAGE_SIZE,"%s : %s\n",dev->kobj.name,(unsigned char *)dev->driver_data);
 }
 
 static DEVICE_ATTR(name, S_IRUSR | S_IRGRP,device_name_show,NULL);
