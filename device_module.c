@@ -11,29 +11,43 @@
 #include <linux/slab.h>
 #include <linux/uaccess.h>
 
+#define device_max_num (1024)
+#define BUF_MAX PAGE_SIZE
 struct class    *device_class;
 struct device   *device_interface_device;
 unsigned char *temp;
 dev_t devt; //MKDEV(major,minor)
-#define device_max_num (1024)
+unsigned char * temp_buf[BUF_MAX];
+
+/*
+struct sysfs_for_operation{
+}
+*/
 
 // ************************************************* //
 static ssize_t device_name_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
         return snprintf(buf, PAGE_SIZE,"%s : %s\n",dev->kobj.name,(unsigned char *)dev->driver_data);
 }
-
 static DEVICE_ATTR(name, S_IRUSR | S_IRGRP,device_name_show,NULL);
+
+static ssize_t device_stream_store(struct device *dev, struct device_attribute *attr, char *buf,ssize_t size)
+{
+	
+        return snprintf(temp_buf, PAGE_SIZE,buf);
+}
+static DEVICE_ATTW(stream, S_IRUSR | S_IRGRP, NULL, device_stream_store);
 //DEVICE_ATTR_RW(_name) _RO _WO... _name##_show
 
-static struct device_attribute device_sysfs_attrs[] = {
+static struct attribute device_sysfs_attrs[] = {
         &dev_attr_name.attr,
+        &dev_attr_stream.attr,
         NULL,
 };
 
 ATTRIBUTE_GROUPS(device_sysfs);
 
-static int sysfs_suspend(struct device *dev, pm_message_t mesg)
+static int sysfs_suspend(struct device *dev)
 {
         return 0;
 }
@@ -41,6 +55,9 @@ static int sysfs_resume(struct device *dev)
 {
         return 0;
 }
+//register_syscore_ops
+//unregister_syscore_ops
+
 static int __init interface_init(void)
 {
 	int ret;
@@ -56,7 +73,7 @@ static int __init interface_init(void)
         device_class->suspend = sysfs_suspend;
         device_class->resume = sysfs_resume;
         device_class->dev_groups = device_sysfs_groups;
-	temp = kmalloc(sizeof(unsigned char)*32,GFP_KERNEL);
+	temp = kmalloc(32,GFP_KERNEL);
 	ret = snprintf(temp,32,"device interface");
         device_interface_device = device_create(device_class, NULL, devt, temp, "device_0");
 	if(!device_interface_device)
