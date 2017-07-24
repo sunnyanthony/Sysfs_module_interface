@@ -33,7 +33,7 @@ static DEVICE_ATTR(name, S_IRUSR | S_IRGRP,device_name_show,NULL);
 
 static ssize_t device_stream_store(struct device *dev, struct device_attribute *attr, char *buf,ssize_t size)
 {
-	
+	/* do any you what to call */
         return snprintf(temp_buf, PAGE_SIZE,buf);
 }
 static DEVICE_ATTW(stream, S_IRUSR | S_IRGRP, NULL, device_stream_store);
@@ -95,5 +95,5 @@ static void __exit interface_exit(void)
 module_init(interface_init);
 module_exit(interface_exit);
 
-MODULE_DESCRIPTION("Remote processor message sysfs interface");
+MODULE_DESCRIPTION("Module sysfs");
 MODULE_LICENSE("GPL v2");
